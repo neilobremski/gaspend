@@ -1,0 +1,102 @@
+<script>
+    google.charts.load('current', {'packages':['corechart', 'table']});
+
+var chart = null;
+
+function uploadCompleted(response) {
+  document.getElementById('uploader').innerHTML = "Uploaded file! " + response;
+}
+
+function uploadFailed(response) {
+  document.getElementById('uploader').innerHTML = "FAILED! " + response;
+}
+
+function drawChart(rows) {
+
+// Create the data table.
+var data = new google.visualization.DataTable();
+data.addColumn('string', 'Topping');
+data.addColumn('number', 'Slices');
+data.addRows(rows);
+
+      // Set chart options
+      var options = {'title':'How Much Pizza I Ate Last Night',
+                     'width':400,
+                     'height':300, is3D: true};
+
+      // Instantiate and draw our chart, passing in some options.
+      chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+      google.visualization.events.addListener(chart, 'select', selectHandler);
+      chart.draw(data, options);
+    }
+
+ function drawTable() {
+   var data = new google.visualization.DataTable();
+   data.addColumn('date', 'Date');
+   data.addColumn('number', 'Amount');
+   data.addColumn('string', 'Description');
+   data.addColumn('string', 'Category');
+   data.addRows([
+     [new Date(), {v: 499.999, f: '500.00'}, "Something that cost five hundred bucks", "Retail"],
+     [new Date("2019-05-01 PDT"), {v: 51.00, f: '51.00'}, "May 1st PDT", "Retail"],
+     [new Date("2019-05-01"), 510.01, "May 1st UTC", "Retail"],
+   ]);
+
+  var table = new google.visualization.Table(document.getElementById('table_div'));
+  table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+}
+
+function selectHandler(e) {
+  var selection = chart.getSelection();
+  var item = selection[0];
+  alert ("Clicked " + item.row);
+}
+
+function loadedSheet(tab_count) {
+  document.getElementById('tab_count').innerHTML = "The <em>Bills and Budget</em> spreadsheet has " + tab_count + " tabs!";
+}
+
+function doNavigate(pageName) {
+  if (pageName === 'details') {
+    drawTable();
+  } else {
+    document.getElementById('table_div').innerHTML = "Here's overview stuff ... blah blah blah";
+  }
+  google.script.history.push(pageName, [], pageName);
+}
+
+// handle back button
+google.script.history.setChangeHandler(function (e) {
+  console.log(e.state);
+  console.log(e.location.parameters);
+  console.log(e.location.hash);
+
+  // Adjust web app UI to match popped state here...
+  if (e.state === 'details') {
+    drawTable();
+  } else {
+    document.getElementById('table_div').innerHTML = "Here's overview stuff ... blah blah blah";
+  }
+});
+
+function statusSuccess(status) {
+  text = status[0];
+  timeout = status[1];
+  document.getElementById('status').innerHTML = text + "; got it";
+  setTimeout(rotateStatus, timeout);
+}
+
+function statusFailed() {
+  document.getElementById('status').innerHTML = "<em>Failed!</em>";
+  setTimeout(rotateStatus, 2500);
+}
+
+function rotateStatus() {
+  google.script.run.withFailureHandler(statusFailed).withSuccessHandler(statusSuccess).getStatus();
+}
+
+google.charts.setOnLoadCallback(function() {
+  doNavigate('details');
+  setTimeout(rotateStatus, 2500);
+});
+</script>
